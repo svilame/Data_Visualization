@@ -1,0 +1,49 @@
+---
+title: "Cartogram of SouthAmerica Population"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+library(maptools)
+library(cartogram)
+library(tmap)
+library(xlsx)
+
+
+# Get the shape file of South-America
+data(wrld_simpl)
+summary(wrld_simpl)
+
+#Get new data
+new_data <- read.xlsx("new_data.xlsx", sheetName="Hoja1")
+summary(new_data)
+
+#Combine data
+wrld_simpl2 <- merge(wrld_simpl, new_data, by = c("UN"))
+summary(wrld_simpl2)
+
+# keep only the area of south-america
+ame <- wrld_simpl2[wrld_simpl2$SUBREGION == 5, ]
+
+# project the map
+ame <- spTransform(ame, CRS("+proj=longlat +ellps=WGS84 +init=epsg:3395"))
+
+# construct cartogram
+ame_cont <- cartogram_cont(ame, "PopTotal", itermax = 5)
+ame_cont2 <- cartogram_cont(ame, "Popdensity", itermax = 5)
+
+
+# plot it
+m1 <- tm_shape(ame_cont) + tm_polygons("PopTotal", breaks=c(10000000,15000000,20000000,25000000,30000000,35000000,40000000,50000000,80000000, 150000000, 220000000) , palette = "BuGn", title = "# Habitants (millions)", style = "cont") +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), title = "South-American Population (2020)")
+
+m2 <- tm_shape(ame_cont2) + tm_polygons("Popdensity", breaks=c(0,5,10,15,20,25,30,40,50,70,80), title = "Density (hab/km2)", style = "cont") +
+  tm_layout(frame = FALSE, legend.position = c("left", "bottom"), title ="Source: https://population.un.org/", title.position = c("right","bottom"), title.size = 0.5, title.bg.alpha = 0.5, title.fontface = 3)
+  
+tmap_arrange(m1, m2, nrow = 1)
+```
