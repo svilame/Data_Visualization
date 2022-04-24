@@ -1,0 +1,46 @@
+---
+title: "Customer Churn"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+El primer paso será cargar la información en un dataframe y convertir las variables para que sea cómodo trabajar con ellas
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+library(dplyr)
+
+#Get data
+data <- read.csv("churn.csv", stringsAsFactors= TRUE, header=TRUE)
+summary(data)
+```
+
+A continuación, eliminamos las variables que no nos aportan información o cuya información es ambigua y no vamos a poder utilizar
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+#Clean data
+data_clean <- select(data, -security_no, -joining_date, -referral_id, - last_visit_time, -days_since_last_login, avg_frequency_login_days)
+summary(data_clean)
+```
+
+Por último, eliminamos las filas con valores extraños o sin información
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+
+#Clean data
+data_clean <- na.omit(data_clean)
+data_clean <- data_clean[data_clean$joined_through_referral != "?", ]
+data_clean <- data_clean[data_clean$medium_of_operation != "?", ]
+data_clean <- data_clean[complete.cases(data_clean),]
+data_clean <- data_clean[data_clean$gender != "Unknown", ]
+data_clean <- data_clean[data_clean$region_category != "", ]
+data_clean <- data_clean[data_clean$preferred_offer_types != "", ]
+write.csv(data_clean, "data_clean.csv")
+summary(data_clean)
+dim(data_clean)
+head(data_clean)
+```
